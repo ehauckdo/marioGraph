@@ -1,5 +1,5 @@
 import logging
-import logger
+import helper.logger as logger
 import inspect	
 
 class MapMatrix:
