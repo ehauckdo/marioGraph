@@ -27,10 +27,12 @@ def get_graph(map_matrix):
 	nodes.extend(interactable_nodes)
 	edges.extend(interactable_edges)
 
+	map_to_graph.nodes_to_clusters(interactable_nodes)
+
 	# initialize networkx graph
 	G = nx.Graph()
 	for n in nodes:
-		G.add_node(n, pos=(n.x, n.y), tile=n.tile)
+		G.add_node(n, pos=(n.x, n.y), tile=n.tile, type=n.type)
 	for n1,n2,d in edges:
 		G.add_edge(n1,n2)
 		attr = {(n1, n2): {'dist':d}}
@@ -47,7 +49,7 @@ def get_graph(map_matrix):
 	nx.draw(G, flipped_pos)
 
 	# add labels to nodes
-	node_labels = nx.get_node_attributes(G,'tile')
+	node_labels = nx.get_node_attributes(G,'type')
 	nx.draw_networkx_labels(G, flipped_pos, labels = node_labels,font_size=7)
 
 	# add labels to edges
@@ -61,7 +63,7 @@ def parseArgs(args):
 	usage = "usage: %prog [options]"
 	parser = optparse.OptionParser(usage=usage) 
 
-	parser.add_option('-m', action="store", type="string", dest="mapfile",help="Path/name of the map file", default="maps/map1.txt")
+	parser.add_option('-m', action="store", type="string", dest="mapfile",help="Path/name of the map file", default="maps/map1-1.txt")
 
 	(opt, args) = parser.parse_args()
 	return opt, args
@@ -70,7 +72,7 @@ if __name__ == '__main__':
 	opt, args = parseArgs(sys.argv[1:])
 	print(opt.mapfile)
 
-	map_matrix = MapMatrix("maps/map1-1.txt")
+	map_matrix = MapMatrix(opt.mapfile)
 	#map_matrix.print_map()
 	
 	get_graph(map_matrix)

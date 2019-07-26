@@ -1,7 +1,8 @@
 from node import Node
 import helper.logger as logger
 import logging
-import inspect	
+import inspect
+import math	
 
 # receives a list of positions (x,y) of interactable blocks
 # return nodes and edges (as tuples) representing them
@@ -11,10 +12,68 @@ def interactable_to_graph(block_list):
 	edges = []
 
 	for y, x, tile in block_list:
-		nodes.append(Node(x, y, tile))
+		nodes.append(Node(x, y, tile, "C"))
 
 	logger.end_m(__file__,inspect.stack()[0][3])
 	return nodes,edges
+
+# run GDBScan simplified algorithm
+def nodes_to_clusters(node_list, eps=6, min_pts=1):
+	
+	def get_neighbors(node, node_list, min_dist):
+		neighbors = []
+		for n in node_list:
+			dist = get_dist(node, n)
+			if dist <= min_dist and n != node:
+				neighbors.append(n)
+		return neighbors
+
+	def get_dist(node1, node2):
+		dist = math.hypot(node1.x - node2.x, node2.y - node1.y)
+		return dist
+
+
+	labels = {}
+	cluster_counter = 0 # cluster counter
+	for n in node_list:
+
+		# if this node was processed before, ignore
+		if n in labels.keys():
+			continue
+
+		neighbors = get_neighbors(n, node_list, eps)
+		print("Checking neighbours for: {},{},{}".format(n.x,n.y,n.tile))
+		for neighbor in neighbors:
+			print("C{},{},{}".format(neighbor.x,neighbor.y,neighbor.tile))
+		
+
+		# if it has 0 neighbors, classifiy as noise
+		# and continue search with next node
+		if len(neighbors) < min_pts:
+			labels[n] = -1
+			continue
+
+		cluster_counter += 1
+		labels[n] = cluster_counter
+
+		# process the neighbors
+		for neighbor in neighbors:
+			if neighbor in labels.keys():
+				if labels[neighbor] == "noise":
+					labels[neighbor] = cluster_counter
+				#if labels[neighbor] == None:
+				#	continue
+			labels[neighbor] = cluster_counter
+			neighbors_of_neighbor = get_neighbors(neighbor, node_list, eps)
+			for n_of_n in neighbors_of_neighbor:
+				if n_of_n not in neighbors:
+					neighbors.append(n_of_n)
+
+	for key, value in labels.items():
+		print("Cluster: {}, Node: {}".format(value,key))
+		
+	return labels
+
 
 # receives a list of positions (x,y) of platform blocks
 # return nodes and edges (as tuples) representing them
