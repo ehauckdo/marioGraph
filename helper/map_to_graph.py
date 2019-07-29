@@ -34,6 +34,7 @@ def nodes_to_clusters(node_list, eps=6, min_pts=1):
 
 
 	labels = {}
+	edges = {}
 	cluster_counter = 0 # cluster counter
 	for n in node_list:
 
@@ -51,10 +52,13 @@ def nodes_to_clusters(node_list, eps=6, min_pts=1):
 		# and continue search with next node
 		if len(neighbors) < min_pts:
 			labels[n] = -1
+			#labels[n] = {"label": -1, "nodes":[], "edges": []}
 			continue
 
 		cluster_counter += 1
 		labels[n] = cluster_counter
+		edges[cluster_counter] = []
+		#labels[n] = {"label": cluster_counter, "nodes":[], "edges": []}
 
 		# process the neighbors
 		for neighbor in neighbors:
