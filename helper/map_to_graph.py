@@ -9,17 +9,16 @@ import math
 def interactable_to_graph(block_list):
 	logger.init_m(__file__,inspect.stack()[0][3])
 	nodes = []
-	edges = []
 
 	for y, x, tile in block_list:
 		nodes.append(Node(x, y, tile, "C"))
 
 	logger.end_m(__file__,inspect.stack()[0][3])
-	return nodes,edges
+	return nodes
 
 # run GDBScan simplified algorithm
 def nodes_to_clusters(node_list, eps=6, min_pts=1):
-	
+	logger.init_m(__file__,inspect.stack()[0][3])
 	def get_neighbors(node, node_list, min_dist):
 		neighbors = []
 		for n in node_list:
@@ -32,50 +31,51 @@ def nodes_to_clusters(node_list, eps=6, min_pts=1):
 		dist = math.hypot(node1.x - node2.x, node2.y - node1.y)
 		return dist
 
-
 	labels = {}
-	edges = {}
-	cluster_counter = 0 # cluster counter
+	labels[-1] = {"nodes":[], "edges": []}
+	processed_nodes = []
+	cc = -1 # cluster counter
+	
 	for n in node_list:
-
 		# if this node was processed before, ignore
-		if n in labels.keys():
-			continue
+		if n in processed_nodes: continue
+		processed_nodes.append(n)
 
 		neighbors = get_neighbors(n, node_list, eps)
-		print("Checking neighbours for: {},{},{}".format(n.x,n.y,n.tile))
-		for neighbor in neighbors:
-			print("C{},{},{}".format(neighbor.x,neighbor.y,neighbor.tile))
 		
-
 		# if it has 0 neighbors, classifiy as noise
 		# and continue search with next node
 		if len(neighbors) < min_pts:
-			labels[n] = -1
-			#labels[n] = {"label": -1, "nodes":[], "edges": []}
+			labels[-1]["nodes"].append(n)
 			continue
 
-		cluster_counter += 1
-		labels[n] = cluster_counter
-		edges[cluster_counter] = []
-		#labels[n] = {"label": cluster_counter, "nodes":[], "edges": []}
+		cc += 1
+		labels[cc] = {"nodes":[n], "edges": []}
 
 		# process the neighbors
 		for neighbor in neighbors:
-			if neighbor in labels.keys():
-				if labels[neighbor] == "noise":
-					labels[neighbor] = cluster_counter
-				#if labels[neighbor] == None:
-				#	continue
-			labels[neighbor] = cluster_counter
+			print("processing neighbor ", neighbor)
+			if neighbor in processed_nodes:
+				if neighbor in labels[-1]["nodes"]:
+					labels[-1]["nodes"].remove(neighbor)
+					labels[cc]["nodes"].append(neighbor)
+				else: 
+					continue
+
+			labels[cc]["nodes"].append(neighbor)
+			edge = (n, neighbor, get_dist(n,neighbor))
+			labels[cc]["edges"].append(edge)
+			processed_nodes.append(neighbor)
+
 			neighbors_of_neighbor = get_neighbors(neighbor, node_list, eps)
 			for n_of_n in neighbors_of_neighbor:
 				if n_of_n not in neighbors:
 					neighbors.append(n_of_n)
 
 	for key, value in labels.items():
-		print("Cluster: {}, Node: {}".format(value,key))
-		
+		print("Cluster: {}, Node: {}".format(key,value))
+	
+	logger.end_m(__file__,inspect.stack()[0][3])
 	return labels
 
 

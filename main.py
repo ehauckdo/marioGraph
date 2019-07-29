@@ -23,11 +23,13 @@ def get_graph(map_matrix):
 
 	# fetch interactables
 	interactables = parse_map.get_interactables(map_matrix)
-	interactable_nodes, interactable_edges = map_to_graph.interactable_to_graph(interactables)
+	interactable_nodes = map_to_graph.interactable_to_graph(interactables)
 	nodes.extend(interactable_nodes)
-	edges.extend(interactable_edges)
 
-	map_to_graph.nodes_to_clusters(interactable_nodes)
+	# get clusters of interactables with GDBScan
+	clusters = map_to_graph.nodes_to_clusters(interactable_nodes)
+	for cluster, info in clusters.items():
+		edges.extend(info["edges"])
 
 	# initialize networkx graph
 	G = nx.Graph()
@@ -35,7 +37,7 @@ def get_graph(map_matrix):
 		G.add_node(n, pos=(n.x, n.y), tile=n.tile, type=n.type)
 	for n1,n2,d in edges:
 		G.add_edge(n1,n2)
-		attr = {(n1, n2): {'dist':d}}
+		attr = {(n1, n2): {'dist':d, 'type':n1.type}}
 		nx.set_edge_attributes(G, attr)
 	
 	logging.info("Number of nodes: {}".format(G.number_of_nodes()))
@@ -53,17 +55,16 @@ def get_graph(map_matrix):
 	nx.draw_networkx_labels(G, flipped_pos, labels = node_labels,font_size=7)
 
 	# add labels to edges
-	edge_labels = nx.get_edge_attributes(G,'dist')
-	nx.draw_networkx_edge_labels(G, flipped_pos, labels = edge_labels, font_size=7)
+	edge_labels = nx.get_edge_attributes(G,'type')
+	nx.draw_networkx_edge_labels(G, flipped_pos, edge_labels = edge_labels, font_size=7)
 
 	plt.show()
-
 
 def parseArgs(args):
 	usage = "usage: %prog [options]"
 	parser = optparse.OptionParser(usage=usage) 
 
-	parser.add_option('-m', action="store", type="string", dest="mapfile",help="Path/name of the map file", default="maps/map1-1.txt")
+	parser.add_option('-m', action="store", type="string", dest="mapfile",help="Path/name of the map file", default="maps/short_scene1.txt")
 
 	(opt, args) = parser.parse_args()
 	return opt, args
