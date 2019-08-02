@@ -1,24 +1,25 @@
 from node import Node
-import helper.logger as logger
 import logging
 import inspect
 import math	
 
+logger = logging.getLogger(__name__)
+
 # receives a list of positions (x,y) of interactable blocks
 # return nodes and edges (as tuples) representing them
 def interactable_to_graph(block_list):
-	logger.init_m(__file__,inspect.stack()[0][3])
+	logger.debug(" (STARTED) {}".format(inspect.stack()[0][3]))
 	nodes = []
 
 	for y, x, tile in block_list:
 		nodes.append(Node(x, y, tile, "C"))
 
-	logger.end_m(__file__,inspect.stack()[0][3])
+	logger.debug(" (FINISHD) {}".format(inspect.stack()[0][3]))
 	return nodes
 
 # run GDBScan simplified algorithm
 def nodes_to_clusters(node_list, eps=6, min_pts=1):
-	logger.init_m(__file__,inspect.stack()[0][3])
+	logger.debug(" (STARTED) {}".format(inspect.stack()[0][3]))
 	def get_neighbors(node, node_list, min_dist):
 		neighbors = []
 		for n in node_list:
@@ -75,14 +76,14 @@ def nodes_to_clusters(node_list, eps=6, min_pts=1):
 	for key, value in labels.items():
 		print("Cluster: {}, Node: {}".format(key,value))
 	
-	logger.end_m(__file__,inspect.stack()[0][3])
+	logger.debug(" (FINISHD) {}".format(inspect.stack()[0][3]))
 	return labels
 
 
 # receives a list of positions (x,y) of platform blocks
 # return nodes and edges (as tuples) representing them
 def platform_to_graph(block_list):
-	logger.init_m(__file__,inspect.stack()[0][3])
+	logger.debug(" (STARTED) {}".format(inspect.stack()[0][3]))
 	from operator import itemgetter
 	block_list.sort(key=itemgetter(0))
 	
@@ -152,6 +153,6 @@ def platform_to_graph(block_list):
 				nodes.append(node1)
 				x_start = -1
 
-	logger.end_m(__file__,inspect.stack()[0][3])
+	logger.debug(" (FINISHD) {}".format(inspect.stack()[0][3]))
 	return nodes,edges
 

@@ -10,6 +10,7 @@ from map_matrix import MapMatrix
 from matplotlib import pyplot as plt
 
 logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 def get_graph(map_matrix):
 	nodes = []
@@ -40,8 +41,8 @@ def get_graph(map_matrix):
 		attr = {(n1, n2): {'dist':d, 'type':n1.type}}
 		nx.set_edge_attributes(G, attr)
 	
-	logging.info("Number of nodes: {}".format(G.number_of_nodes()))
-	logging.info("Number of edges: {}".format(G.number_of_edges()))
+	logger.info("Number of nodes: {}".format(G.number_of_nodes()))
+	logger.info("Number of edges: {}".format(G.number_of_edges()))
 
 	# this will give the plot inverted, because it's a regular x,y axis
 	pos = nx.get_node_attributes(G,'pos')
