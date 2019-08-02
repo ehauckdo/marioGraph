@@ -1,7 +1,7 @@
 from node import Node
-import logging
-import inspect
-import math	
+import logging, inspect
+import math
+import helper.reachability as reachability	
 
 logger = logging.getLogger(__name__)
 
@@ -17,8 +17,32 @@ def interactable_to_graph(block_list):
 	logger.debug(" (RTRN) {}".format(inspect.stack()[0][3]))
 	return nodes
 
+# receives a list of positions (x,y) of interactable blocks
+# return nodes and edges (as tuples) representing them
+def get_reach_edges(platforms, p_edges, interactables):
+	logger.debug(" (CALL) {}".format(inspect.stack()[0][3]))
+	edges = []
+	all_nodes = platforms + interactables
+
+	for n1, n2, d, t in p_edges:
+		for p in all_nodes:
+
+			if reachability.is_reachable(n1, n2, p):
+				if get_dist(n1,p) <= get_dist(n2,p):
+					edge = (n1, p, get_dist(n1,p), "R")
+				else:
+					edge = (n2, p, get_dist(n2,p), "R")
+				edges.append(edge)
+
+	logger.debug(" (RTRN) {}".format(inspect.stack()[0][3]))
+	return edges
+
+def get_dist(node1, node2):
+		dist = math.hypot(node1.x - node2.x, node2.y - node1.y)
+		return dist
+
 # run GDBScan simplified algorithm
-def nodes_to_clusters(node_list, eps=6, min_pts=1):
+def nodes_to_clusters(node_list, eps=4, min_pts=2):
 	logger.debug(" (CALL) {}".format(inspect.stack()[0][3]))
 	def get_neighbors(node, node_list, min_dist):
 		neighbors = []
@@ -27,10 +51,6 @@ def nodes_to_clusters(node_list, eps=6, min_pts=1):
 			if dist <= min_dist and n != node:
 				neighbors.append(n)
 		return neighbors
-
-	def get_dist(node1, node2):
-		dist = math.hypot(node1.x - node2.x, node2.y - node1.y)
-		return dist
 
 	labels = {}
 	labels[-1] = {"nodes":[], "edges": []}
@@ -64,7 +84,7 @@ def nodes_to_clusters(node_list, eps=6, min_pts=1):
 					continue
 
 			labels[cc]["nodes"].append(neighbor)
-			edge = (n, neighbor, get_dist(n,neighbor))
+			edge = (n, neighbor, get_dist(n,neighbor), "C")
 			labels[cc]["edges"].append(edge)
 			processed_nodes.append(neighbor)
 
@@ -132,7 +152,7 @@ def platform_to_graph(block_list):
 				nodes.append(node1)
 				nodes.append(node2)
 				dist = x - x_start
-				edge = (node1, node2, dist)
+				edge = (node1, node2, dist, "P")
 				edges.append(edge)
 				x_start = -1
 			# check if there's will be a gap between current and next x
@@ -143,7 +163,7 @@ def platform_to_graph(block_list):
 				node2 = Node(x, y, tile)
 				nodes.append(node1)
 				nodes.append(node2)
-				edge = (node1, node2, dist)
+				edge = (node1, node2, dist, "P")
 				edges.append(edge)
 				x_start = -1
 			# check if next (platform) block is of the same type as the current

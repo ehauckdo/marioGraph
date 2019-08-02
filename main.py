@@ -6,6 +6,7 @@ import networkx as nx
 from node import Node
 import helper.map_to_graph as map_to_graph
 import helper.parse_map as parse_map
+import helper.reachability as reachability
 from map_matrix import MapMatrix
 from matplotlib import pyplot as plt
 
@@ -32,13 +33,20 @@ def get_graph(map_matrix):
 	for cluster, info in clusters.items():
 		edges.extend(info["edges"])
 
+	reach_edges = map_to_graph.get_reach_edges(platform_nodes, platform_edges, interactable_nodes)
+	edges.extend(reach_edges)
+
+	print("Reachability Nodes: ")
+	for r_e in reach_edges:
+		print(r_e)
+
 	# initialize networkx graph
 	G = nx.Graph()
 	for n in nodes:
 		G.add_node(n, pos=(n.x, n.y), tile=n.tile, type=n.type)
-	for n1,n2,d in edges:
+	for n1,n2,d,t in edges:
 		G.add_edge(n1,n2)
-		attr = {(n1, n2): {'dist':d, 'type':n1.type}}
+		attr = {(n1, n2): {'dist':d, 'type':t}}
 		nx.set_edge_attributes(G, attr)
 	
 	logger.info("Number of nodes: {}".format(G.number_of_nodes()))
@@ -59,6 +67,8 @@ def get_graph(map_matrix):
 	edge_labels = nx.get_edge_attributes(G,'type')
 	nx.draw_networkx_edge_labels(G, flipped_pos, edge_labels = edge_labels, font_size=7)
 
+	#plt.axis('on')
+	#plt.grid('on', )
 	plt.show()
 
 def parseArgs(args):
