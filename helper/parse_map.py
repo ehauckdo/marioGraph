@@ -26,6 +26,19 @@ def get_platforms(map_matrix):
 	logger.debug(" (RTRN) {}".format(inspect.stack()[0][3]))
 	return platforms
 
+def get_all_tiles(map_matrix, exception=[]):
+	logger.debug(" (CALL) {}".format(inspect.stack()[0][3]))
+	tiles = []
+
+	for y in reversed(range(map_matrix.y_length)):
+		for x in range(len(map_matrix.map[y])):
+			tile_type = map_matrix.map[y][x]
+			if tile_type not in exception:
+				tiles.append((y, x, tile_type))
+
+	logger.debug(" (RTRN) {}".format(inspect.stack()[0][3]))
+	return tiles
+
 # receives a MapMatrix object, return every occurrence of
 # interactable blocks as tuples (y,x)
 # 'g': Goomba

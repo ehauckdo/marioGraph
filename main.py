@@ -71,6 +71,163 @@ def get_graph(map_matrix):
 	#plt.grid('on', )
 	plt.show()
 
+# GRAPH TYPE 1
+def get_graph_1(map_matrix):
+	tiles = parse_map.get_all_tiles(map_matrix)
+	nodes,edges = map_to_graph.tile_to_graph(tiles)
+
+	G = nx.Graph()
+	for n in nodes:
+		G.add_node(n, pos=(n.x, n.y), tile=n.tile, type=n.type)
+
+	pos = nx.get_node_attributes(G,'pos')
+	flipped_pos = {node: (x,-y) for (node, (x,y)) in pos.items()}
+
+	nx.draw(G, flipped_pos)
+
+	# add labels to nodes
+	node_labels = nx.get_node_attributes(G,'type')
+	nx.draw_networkx_labels(G, flipped_pos, labels = node_labels,font_size=7)
+
+	plt.show()
+
+# GRAPH TYPE 2
+def get_graph_2(map_matrix):
+	tiles = parse_map.get_all_tiles(map_matrix, ["-"])
+	nodes,edges = map_to_graph.tile_to_graph(tiles)
+
+	G = nx.Graph()
+	
+	for n in nodes:
+		G.add_node(n, pos=(n.x, n.y), tile=n.tile, type=n.type)
+
+	# this will give the plot inverted, because it's a regular x,y axis
+	pos = nx.get_node_attributes(G,'pos')
+	# this will give the plot like in the game, with y increasing downwards
+	flipped_pos = {node: (x,-y) for (node, (x,y)) in pos.items()}
+
+	nx.draw(G, flipped_pos)
+
+	# add labels to nodes
+	node_labels = nx.get_node_attributes(G,'type')
+	nx.draw_networkx_labels(G, flipped_pos, labels = node_labels,font_size=7)
+
+	plt.show()
+
+# GRAPH TYPE 3
+def get_graph_3(map_matrix):
+	nodes = []
+	edges = []
+
+	platforms = parse_map.get_platforms(map_matrix)
+	platform_nodes,platform_edges = map_to_graph.platform_to_graph(platforms)
+	nodes.extend(platform_nodes)
+	edges.extend(platform_edges)
+
+	interactables = parse_map.get_interactables(map_matrix)
+	interactable_nodes = map_to_graph.interactable_to_graph(interactables)
+	nodes.extend(interactable_nodes)
+
+	G = nx.Graph()
+	
+	for n in nodes:
+		G.add_node(n, pos=(n.x, n.y), tile=n.tile, type=n.type)
+	for n1,n2,d,t in edges:
+		G.add_edge(n1,n2)
+		attr = {(n1, n2): {'dist':d, 'type':t}}
+		nx.set_edge_attributes(G, attr)
+
+	# this will give the plot inverted, because it's a regular x,y axis
+	pos = nx.get_node_attributes(G,'pos')
+	# this will give the plot like in the game, with y increasing downwards
+	flipped_pos = {node: (x,-y) for (node, (x,y)) in pos.items()}
+
+	nx.draw(G, flipped_pos)
+
+	# add labels to nodes
+	node_labels = nx.get_node_attributes(G,'type')
+	nx.draw_networkx_labels(G, flipped_pos, labels = node_labels,font_size=7)
+
+	plt.show()	
+
+# GRAPH TYPE 5 & 6
+def get_graph_5(map_matrix):
+	nodes = []
+	edges = []
+
+	platforms = parse_map.get_platforms(map_matrix)
+	platform_nodes,platform_edges,solid_nodes = map_to_graph.platform_to_graph_improved(platforms, map_matrix)
+	nodes.extend(platform_nodes)
+	edges.extend(platform_edges)
+	nodes.extend(solid_nodes)
+
+	interactables = parse_map.get_interactables(map_matrix)
+	interactable_nodes = map_to_graph.interactable_to_graph(interactables)
+	nodes.extend(interactable_nodes)
+
+	G = nx.Graph()
+	
+	for n in nodes:
+		G.add_node(n, pos=(n.x, n.y), tile=n.tile, type=n.type)
+	for n1,n2,d,t in edges:
+		G.add_edge(n1,n2)
+		attr = {(n1, n2): {'dist':d, 'type':t}}
+		nx.set_edge_attributes(G, attr)
+
+	# this will give the plot inverted, because it's a regular x,y axis
+	pos = nx.get_node_attributes(G,'pos')
+	# this will give the plot like in the game, with y increasing downwards
+	flipped_pos = {node: (x,-y) for (node, (x,y)) in pos.items()}
+
+	nx.draw(G, flipped_pos)
+
+	# add labels to nodes
+	node_labels = nx.get_node_attributes(G,'type')
+	nx.draw_networkx_labels(G, flipped_pos, labels = node_labels,font_size=7)
+
+	plt.show()	
+
+# GRAPH TYPE 7
+def get_graph_7(map_matrix):
+	nodes = []
+	edges = []
+
+	platforms = parse_map.get_platforms(map_matrix)
+	platform_nodes,platform_edges,solid_nodes = map_to_graph.platform_to_graph_improved(platforms, map_matrix)
+	nodes.extend(platform_nodes)
+	edges.extend(platform_edges)
+	nodes.extend(solid_nodes)
+
+	interactables = parse_map.get_interactables(map_matrix)
+	interactable_nodes = map_to_graph.interactable_to_graph(interactables)
+	nodes.extend(interactable_nodes)
+
+	reach_edges = map_to_graph.get_reach_edges(platform_nodes, platform_edges, interactable_nodes)
+	edges.extend(reach_edges)
+
+	G = nx.Graph()
+	
+	for n in nodes:
+		G.add_node(n, pos=(n.x, n.y), tile=n.tile, type=n.type)
+	for n1,n2,d,t in edges:
+		G.add_edge(n1,n2)
+		attr = {(n1, n2): {'dist':d, 'type':t}}
+		nx.set_edge_attributes(G, attr)
+
+	# this will give the plot inverted, because it's a regular x,y axis
+	pos = nx.get_node_attributes(G,'pos')
+	# this will give the plot like in the game, with y increasing downwards
+	flipped_pos = {node: (x,-y) for (node, (x,y)) in pos.items()}
+
+	nx.draw(G, flipped_pos)
+
+	# add labels to nodes
+	node_labels = nx.get_node_attributes(G,'type')
+	nx.draw_networkx_labels(G, flipped_pos, labels = node_labels,font_size=7)
+
+	plt.show()	
+
+
 def parseArgs(args):
 	usage = "usage: %prog [options]"
 	parser = optparse.OptionParser(usage=usage) 
@@ -87,6 +244,6 @@ if __name__ == '__main__':
 	map_matrix = MapMatrix(opt.mapfile)
 	#map_matrix.print_map()
 	
-	get_graph(map_matrix)
+	get_graph_7(map_matrix)
 
-	G = nx.Graph()
+	#G = nx.Graph()

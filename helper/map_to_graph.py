@@ -176,3 +176,129 @@ def platform_to_graph(block_list):
 	logger.debug(" (RTRN) {}".format(inspect.stack()[0][3]))
 	return nodes,edges
 
+# receives a list of positions (x,y) of platform blocks
+# return nodes and edges (as tuples) representing them
+# the edges returned in this function takes into account
+# whether or not there are solid blocks on top of the current plat
+def platform_to_graph_improved(block_list, map_matrix):
+	logger.debug(" (CALL) {}".format(inspect.stack()[0][3]))
+	from operator import itemgetter
+	block_list.sort(key=itemgetter(0))
+	
+	platform_blocks = ["X", '#', 't', "Q", "S", "?", "U"]
+	nodes = []
+	edges = []
+	solid_nodes = []
+
+	x_start = -1
+	y_list, x_list, tile_list = zip(*block_list)
+
+	for index in range(len(block_list)):
+		y = y_list[index]
+		x = x_list[index]
+		tile = tile_list[index]
+		
+		if x_start == -1:
+			x_start = x
+
+			
+			# check if there's will be a gap between current and next x
+			if index+1 == len(block_list) or (index+1 < len(block_list) and x+1 < x_list[index+1]):
+				#print("An isolated block at {},{}".format(y, x))
+				# check if tile above it is a platform
+				if y-1 >= 0 and map_matrix.map[y-1][x] in platform_blocks:
+					node1 = Node(x, y, tile, "S")
+					solid_nodes.append(node1)
+				else:
+					node1 = Node(x, y, tile)
+					nodes.append(node1)
+				x_start = -1
+
+			# check if next (platform) block is of the same type as the current
+			elif index+1 == len(block_list) or (index+1 < len(block_list) and tile != tile_list[index+1]):
+				#print("An isolated block at {},{}".format(y, x))
+				# check if tile above it is a platform
+				if y-1 >= 0 and map_matrix.map[y-1][x] in platform_blocks:
+					node1 = Node(x, y, tile, "S")
+					solid_nodes.append(node1)
+				else:
+					node1 = Node(x, y, tile)
+					nodes.append(node1)
+				x_start = -1
+
+			# if this is the last element in the list
+			# OR y is changing in the next element
+			elif index+1 == len(block_list) or (index+1 < len(block_list) and y != y_list[index+1]):
+				#print("An isolated block at {},{}".format(y, x))
+				# check if tile above it is a platform
+				if y-1 >= 0 and map_matrix.map[y-1][x] in platform_blocks:
+					node1 = Node(x, y, tile, "S")
+					solid_nodes.append(node1)
+				else:
+					node1 = Node(x, y, tile)
+					nodes.append(node1)
+				x_start = -1
+
+		else:
+
+			# check if tile above it is a platform
+			if y-1 >= 0 and map_matrix.map[y-1][x] in platform_blocks:
+				node1 = Node(x_start, y, tile)
+				node2 = Node(x-1, y, tile)
+				nodes.append(node1)
+				nodes.append(node2)
+				dist = x - x_start
+				edge = (node1, node2, dist, "P")
+				edges.append(edge)
+				solid = Node(x,y,tile,"S")
+				solid_nodes.append(solid)
+				x_start = -1
+
+			# check if y will change in the next element
+			elif(index+1 < len(block_list) and y != y_list[index+1]):
+				#print("Aa platform between {},{} and {},{}".format(y, x_start, y, x))	
+				node1 = Node(x_start, y, tile)
+				node2 = Node(x, y, tile)
+				nodes.append(node1)
+				nodes.append(node2)
+				dist = x - x_start
+				edge = (node1, node2, dist, "P")
+				edges.append(edge)
+				x_start = -1
+			# check if there's will be a gap between current and next x
+			elif index+1 == len(block_list) or (index+1 < len(block_list) and x+1 < x_list[index+1]):
+				#print("Aa platform between {},{} and {},{}".format(y, x_start, y, x))
+				dist = x - x_start
+				node1 = Node(x_start, y, tile)
+				node2 = Node(x, y, tile)
+				nodes.append(node1)
+				nodes.append(node2)
+				edge = (node1, node2, dist, "P")
+				edges.append(edge)
+				x_start = -1
+			# check if next (platform) block is of the same type as the current
+			elif (index+1 < len(block_list) and tile != tile_list[index+1]):
+				#print("An isolated block at {},{}".format(y, x))
+				node1 = Node(x, y, tile)
+				nodes.append(node1)
+				x_start = -1
+
+	logger.debug(" (RTRN) {}".format(inspect.stack()[0][3]))
+	return nodes,edges,solid_nodes
+
+
+def tile_to_graph(block_list):
+	nodes = []
+	edges = []
+
+	y_list, x_list, tile_list = zip(*block_list)
+
+	for index in range(len(block_list)):
+		y = y_list[index]
+		x = x_list[index]
+		tile = tile_list[index]
+
+		node = Node(x, y, tile, tile)
+		nodes.append(node)
+
+	return nodes,edges

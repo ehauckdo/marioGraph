@@ -1,7 +1,7 @@
 import logging, inspect
 logger = logging.getLogger(__name__)
 
-def is_reachable(p1, p2, n, dist=4):
+def is_reachable(p1, p2, n, dist=5):
 	logger.debug(" (CALL) {}".format(inspect.stack()[0][3]))
 	
 	def area(p1_x, p1_y, p2_x, p2_y, p3_x, p3_y):
