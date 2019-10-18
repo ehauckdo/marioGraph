@@ -23,6 +23,8 @@ def get_reach_edges(platforms, p_edges, interactables):
 	logger.debug(" (CALL) {}".format(inspect.stack()[0][3]))
 	edges = []
 	all_nodes = platforms + interactables
+	processed_platforms = [] # some platforms have no edges
+							 # we calculate the reachability separately
 
 	for n1, n2, d, t in p_edges:
 		for p in all_nodes:
@@ -33,6 +35,16 @@ def get_reach_edges(platforms, p_edges, interactables):
 				else:
 					edge = (n2, p, get_dist(n2,p), "R")
 				edges.append(edge)
+		if n1 not in processed_platforms: processed_platforms.append(n1)
+		if n2 not in processed_platforms: processed_platforms.append(n2)
+
+	for plat in platforms:
+		if plat not in processed_platforms:
+			for p in all_nodes:
+				if reachability.is_reachable(plat, plat, p):
+					edge = (plat, p, get_dist(plat,p), "R")
+					edges.append(edge)
+
 
 	logger.debug(" (RTRN) {}".format(inspect.stack()[0][3]))
 	return edges
